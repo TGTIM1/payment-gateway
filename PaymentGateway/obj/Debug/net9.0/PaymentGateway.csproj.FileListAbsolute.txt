@@ -30,3 +30,4 @@ D:\payment-gateway\PaymentGateway\obj\Debug\net9.0\refint\PaymentGateway.dll
 D:\payment-gateway\PaymentGateway\obj\Debug\net9.0\PaymentGateway.pdb
 D:\payment-gateway\PaymentGateway\obj\Debug\net9.0\PaymentGateway.genruntimeconfig.cache
 D:\payment-gateway\PaymentGateway\obj\Debug\net9.0\ref\PaymentGateway.dll
+D:\payment-gateway\PaymentGateway\obj\Debug\net9.0\PaymentGateway.sourcelink.json

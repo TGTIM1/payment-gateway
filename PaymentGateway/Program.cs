@@ -16,5 +16,9 @@ app.MapGet("/health", () =>
 {
     return Results.Json(new {status = "ok"});
 });
+app.MapGet("/hello", () =>
+{
+    return Results.Json(new { status = "Hello World" }); 
+});
 app.Run();
 
