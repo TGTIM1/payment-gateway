@@ -1,6 +1,6 @@
 @PaymentGateway_HostAddress = http://localhost:5288
 
-POST {PaymentGateway_HostAssress/payments} 
+POST {{PaymentGateway_HostAddress}}/payments 
 Content-Type: application/json
 
 {
