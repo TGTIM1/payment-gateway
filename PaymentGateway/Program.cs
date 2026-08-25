@@ -1,13 +1,19 @@
 using PaymentGateway;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Настройка сериализации Enum в строку для всех типов ответов (и Http.Json, и Mvc.Json)
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
-    options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -15,15 +21,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/hello", () => Results.Ok(new { status = "Hello World!" }));
 
-app.MapGet("/health", () => { return Results.Json(new { status = "ok" }); });
-app.MapGet("/hello", () => { return Results.Json(new { status = "Hello World!" }); });
 app.MapPost("/payments", (PaymentRequest request, AppDbContext db) =>
 {
     var payment = new Payment
@@ -41,16 +46,12 @@ app.MapPost("/payments", (PaymentRequest request, AppDbContext db) =>
     return Results.Created($"/payments/{payment.Id}", payment);
 });
 
-
-
-
 app.MapGet("/payments/{id}", (Guid id, AppDbContext db) =>
 {
     var payment = db.Payments.FirstOrDefault(x => x.Id == id);
-    
-    
     return payment == null ? Results.NotFound() : Results.Ok(payment);
 });
-app.MapGet("/payments", (AppDbContext db) => { return Results.Ok(db.Payments.ToList); });
+
+app.MapGet("/payments", (AppDbContext db) => Results.Ok(db.Payments.ToList()));
 
 app.Run();
