@@ -1,6 +1,12 @@
 @PaymentGateway_HostAddress = http://localhost:5288
 
-GET {{PaymentGateway_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {PaymentGateway_HostAssress/payments} 
+Content-Type: application/json
+
+{
+  "amount": 4200,
+  "Currency": "USD"
+  
+}
 
 ###
