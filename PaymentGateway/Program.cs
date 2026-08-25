@@ -32,6 +32,16 @@ app.MapPost("/payments", (Payment payment) =>
     payments.Add(payment);
     return Results.Created($"/payments/{payment.Id}", payment);
 });
+app.MapGet("/payments/{id}", (Guid id) => 
+    {
+        var  payment = payments.FirstOrDefault(x => x.Id == id); //автозаполнение сделало за меня объясни эту строку
+        if (payment == null)
+        {
+            return Results.NotFound();
+        }
+        return Results.Ok(payment);
+        
+    });
 
 app.Run();
 
