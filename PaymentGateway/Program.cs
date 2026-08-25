@@ -16,15 +16,10 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
 var payments = new List<Payment>();
-app.MapGet("/health", () =>
-{
-    return Results.Json(new {status = "ok"});
-});
-app.MapGet("/hello", () =>
-{
-    return Results.Json(new { status = "Hello World!" }); 
-});
+app.MapGet("/health", () => { return Results.Json(new { status = "ok" }); });
+app.MapGet("/hello", () => { return Results.Json(new { status = "Hello World!" }); });
 app.MapPost("/payments", (Payment payment) =>
 {
     payment.Id = Guid.NewGuid();
@@ -32,16 +27,16 @@ app.MapPost("/payments", (Payment payment) =>
     payments.Add(payment);
     return Results.Created($"/payments/{payment.Id}", payment);
 });
-app.MapGet("/payments/{id}", (Guid id) => 
+app.MapGet("/payments/{id}", (Guid id) =>
+{
+    var payment = payments.FirstOrDefault(x => x.Id == id);
+    if (payment == null)
     {
-        var  payment = payments.FirstOrDefault(x => x.Id == id); //автозаполнение сделало за меня объясни эту строку
-        if (payment == null)
-        {
-            return Results.NotFound();
-        }
-        return Results.Ok(payment);
-        
-    });
+        return Results.NotFound();
+    }
+
+    return Results.Ok(payment);
+});
+app.MapGet("/payments", () => { return Results.Ok(payments); });
 
 app.Run();
-
