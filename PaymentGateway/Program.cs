@@ -1,5 +1,5 @@
 using PaymentGateway;
-
+using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -9,6 +9,10 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =
 {
     options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
 });
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -17,26 +21,36 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-var payments = new List<Payment>();
+
 app.MapGet("/health", () => { return Results.Json(new { status = "ok" }); });
 app.MapGet("/hello", () => { return Results.Json(new { status = "Hello World!" }); });
-app.MapPost("/payments", (Payment payment) =>
+app.MapPost("/payments", (PaymentRequest request, AppDbContext db) =>
 {
-    payment.Id = Guid.NewGuid();
-    payment.CreatedAt = DateTime.UtcNow;
-    payments.Add(payment);
+    var payment = new Payment
+    {
+        Id = Guid.NewGuid(),
+        Amount = request.Amount,
+        Currency = request.Currency,
+        Status = PaymentStatus.Created,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    db.Payments.Add(payment);
+    db.SaveChanges();
+
     return Results.Created($"/payments/{payment.Id}", payment);
 });
-app.MapGet("/payments/{id}", (Guid id) =>
-{
-    var payment = payments.FirstOrDefault(x => x.Id == id);
-    if (payment == null)
-    {
-        return Results.NotFound();
-    }
 
-    return Results.Ok(payment);
+
+
+
+app.MapGet("/payments/{id}", (Guid id, AppDbContext db) =>
+{
+    var payment = db.Payments.FirstOrDefault(x => x.Id == id);
+    
+    
+    return payment == null ? Results.NotFound() : Results.Ok(payment);
 });
-app.MapGet("/payments", () => { return Results.Ok(payments); });
+app.MapGet("/payments", (AppDbContext db) => { return Results.Ok(db.Payments.ToList); });
 
 app.Run();

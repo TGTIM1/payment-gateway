@@ -11,7 +11,7 @@ Content-Type: application/json
 
 ###
 
-GET {{PaymentGateway_HostAddress}}/payments/194c2da3-40c9-4ea1-a9d3-081e8ed4bcfd
+GET {{PaymentGateway_HostAddress}}/payments/e8f4c334-e46c-4a3a-999b-e56908ff9243
 
 ###
 GET {{PaymentGateway_HostAddress}}/payments/00000000-0000-0000-0000-000000000000
