@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PaymentGateway.Models;
 
 namespace PaymentGateway;
 
@@ -11,8 +12,6 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        // Говорим EF Core сохранять PaymentStatus как строку в БД
         modelBuilder.Entity<Payment>()
             .Property(p => p.Status)
             .HasConversion<string>();

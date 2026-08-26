@@ -1,5 +1,6 @@
-﻿namespace PaymentGateway;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
+
+namespace PaymentGateway.Models;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PaymentStatus

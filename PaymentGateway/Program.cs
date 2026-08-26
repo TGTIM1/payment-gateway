@@ -1,6 +1,7 @@
 using PaymentGateway;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using PaymentGateway.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,32 +27,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
-app.MapGet("/hello", () => Results.Ok(new { status = "Hello World!" }));
-
-app.MapPost("/payments", (PaymentRequest request, AppDbContext db) =>
-{
-    var payment = new Payment
-    {
-        Id = Guid.NewGuid(),
-        Amount = request.Amount,
-        Currency = request.Currency,
-        Status = PaymentStatus.Created,
-        CreatedAt = DateTime.UtcNow
-    };
-
-    db.Payments.Add(payment);
-    db.SaveChanges();
-
-    return Results.Created($"/payments/{payment.Id}", payment);
-});
-
-app.MapGet("/payments/{id}", (Guid id, AppDbContext db) =>
-{
-    var payment = db.Payments.FirstOrDefault(x => x.Id == id);
-    return payment == null ? Results.NotFound() : Results.Ok(payment);
-});
-
-app.MapGet("/payments", (AppDbContext db) => Results.Ok(db.Payments.ToList()));
+app.MapPaymentEndpoints();
 
 app.Run();
