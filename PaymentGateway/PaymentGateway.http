@@ -1,20 +1,48 @@
-@PaymentGateway_HostAddress = http://localhost:5288
-
-POST {{PaymentGateway_HostAddress}}/payments 
+### 1. Создаем первый платеж (USD)
+POST http://localhost:5288/payments
 Content-Type: application/json
 
 {
-  "amount": 4200,
-  "Currency": "USD"
-  
-} 
+  "amount": 100.00,
+  "currency": "USD"
+}
 
-###
+### 2. Создаем второй платеж (EUR)
+POST http://localhost:5288/payments
+Content-Type: application/json
 
-GET {{PaymentGateway_HostAddress}}/payments/e8f4c334-e46c-4a3a-999b-e56908ff9243
+{
+  "amount": 250.50,
+  "currency": "EUR"
+}
 
-###
-GET {{PaymentGateway_HostAddress}}/payments/00000000-0000-0000-0000-000000000000
+### 3. Создаем третий платеж (UZS)
+POST http://localhost:5288/payments
+Content-Type: application/json
 
-###
-GET {{PaymentGateway_HostAddress}}/payments
+{
+  "amount": 50000.00,
+  "currency": "UZS"
+}
+
+### 4. Создаем четвертый платеж (RUB)
+POST http://localhost:5288/payments
+Content-Type: application/json
+
+{
+  "amount": 1500.00,
+  "currency": "RUB"
+}
+
+### ---------------------------------------------------
+### ТЕСТЫ ПАГИНАЦИИИ И СОРТИРОВКИ
+### ---------------------------------------------------
+
+### A. Дефолтный запрос (все элементы)
+GET http://localhost:5288/payments
+
+### B. Страница 1, по 2 элемента 
+GET http://localhost:5288/payments?page=1&pageSize=2
+
+### C. Страница 2, по 2 элемента
+GET http://localhost:5288/payments?page=2&pageSize=2
