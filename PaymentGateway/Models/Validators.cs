@@ -5,18 +5,18 @@ namespace PaymentGateway.Models;
 
 public class PaymentRequestValidator : AbstractValidator<PaymentRequest>
 {
-    public PaymentRequestValidator() // <-- Все правила описываются внутри конструктора!
+    public PaymentRequestValidator() 
     {
         RuleFor(request => request.Amount)
             .NotNull()
-            .WithMessage("Amount is required")
+            .WithMessage("Количество не введено")
             .GreaterThan(0)
-            .WithMessage("Amount must be greater than zero");
+            .WithMessage("Количество должно быть больше 0");
 
         RuleFor(request => request.Currency)
             .NotNull()
-            .WithMessage("Currency is required")
+            .WithMessage("Валюта не введена")
             .IsEnumName(typeof(Currency), caseSensitive: false)
-            .WithMessage("Currency is not available");
+            .WithMessage("Данная валюта не поддерживается");
     }
 }

@@ -3,11 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using PaymentGateway.Endpoints;
+using PaymentGateway.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // Настройка сериализации Enum в строку для всех типов ответов (и Http.Json, и Mvc.Json)
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
@@ -29,6 +32,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseExceptionHandler();
 app.MapPaymentEndpoints();
 
 app.Run();

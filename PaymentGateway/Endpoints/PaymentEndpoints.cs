@@ -23,8 +23,10 @@ public static class PaymentEndpoints
             
             db.Payments.Add(payment);
             db.SaveChanges();
-
+            
+            //throw new Exception("Ихихи - Хяхя");
             return Results.Created($"/payments/{payment.Id}", payment);
+            
         });
         group.MapGet("/{id:guid}", (Guid id, AppDbContext db) =>
         {
