@@ -1,11 +1,13 @@
 using PaymentGateway;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using FluentValidation;
 using PaymentGateway.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // Настройка сериализации Enum в строку для всех типов ответов (и Http.Json, и Mvc.Json)
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>

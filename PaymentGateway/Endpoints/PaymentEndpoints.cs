@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Mappings;
 using PaymentGateway.Models;
+using FluentValidation;
+using PaymentGateway.Models.Enums;
 
 namespace PaymentGateway.Endpoints;
 
@@ -10,9 +12,15 @@ public static class PaymentEndpoints
     {
         var group = app.MapGroup("/payments");
 
-        group.MapPost("/", (PaymentRequest request, AppDbContext db) =>
+        group.MapPost("/", (PaymentRequest request, AppDbContext db, IValidator<PaymentRequest> validator) =>
         {
+            var validationResult = validator.Validate(request);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
             var payment = request.ToEntity();
+            
             db.Payments.Add(payment);
             db.SaveChanges();
 

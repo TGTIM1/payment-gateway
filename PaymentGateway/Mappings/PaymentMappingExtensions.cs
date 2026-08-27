@@ -1,5 +1,5 @@
 ﻿using PaymentGateway.Models;
-
+using PaymentGateway.Models.Enums;
 namespace PaymentGateway.Mappings;
 
 public static class PaymentMappingExtensions

@@ -25,13 +25,13 @@ Content-Type: application/json
   "currency": "UZS"
 }
 
-### 4. Создаем четвертый платеж (RUB)
+### Не валидный пост
 POST http://localhost:5288/payments
 Content-Type: application/json
 
 {
-  "amount": 1500.00,
-  "currency": "RUB"
+  "amount": -1500.00,
+  "currency": "BURMALDA"
 }
 
 ### ---------------------------------------------------

@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "PMcJ9dWpTJ4=",
+  "dgSpecHash": "5ZcJxgJLels=",
   "success": true,
   "projectFilePath": "D:\\payment-gateway\\PaymentGateway\\PaymentGateway.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\tgtim\\.nuget\\packages\\fluentvalidation\\12.1.1\\fluentvalidation.12.1.1.nupkg.sha512",
+    "C:\\Users\\tgtim\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\12.1.1\\fluentvalidation.dependencyinjectionextensions.12.1.1.nupkg.sha512",
     "C:\\Users\\tgtim\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\tgtim\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.16\\microsoft.aspnetcore.openapi.9.0.16.nupkg.sha512",
     "C:\\Users\\tgtim\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\7.0.0\\microsoft.bcl.asyncinterfaces.7.0.0.nupkg.sha512",
