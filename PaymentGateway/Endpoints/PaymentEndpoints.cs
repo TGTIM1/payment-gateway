@@ -1,8 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PaymentGateway.Mappings;
-using PaymentGateway.Models;
+﻿using PaymentGateway.Models;
 using FluentValidation;
-using PaymentGateway.Models.Enums;
+using PaymentGateway.Services;
 
 namespace PaymentGateway.Endpoints;
 
@@ -12,37 +10,28 @@ public static class PaymentEndpoints
     {
         var group = app.MapGroup("/payments");
 
-        group.MapPost("/", (PaymentRequest request, AppDbContext db, IValidator<PaymentRequest> validator) =>
+        group.MapPost("/", async (PaymentRequest request, IPaymentService paymentService, IValidator<PaymentRequest> validator, CancellationToken cancellationToken) =>
         {
-            var validationResult = validator.Validate(request);
+            var validationResult = await validator.ValidateAsync(request, cancellationToken);
             if (!validationResult.IsValid)
             {
                 return Results.ValidationProblem(validationResult.ToDictionary());
             }
-            var payment = request.ToEntity();
-            
-            db.Payments.Add(payment);
-            db.SaveChanges();
+            var response = await paymentService.CreatePaymentAsync(request, cancellationToken);
             
             //throw new Exception("Ихихи - Хяхя");
-            return Results.Created($"/payments/{payment.Id}", payment);
+            return Results.Created($"/payments/{response.Id}", response);
             
         });
-        group.MapGet("/{id:guid}", (Guid id, AppDbContext db) =>
+        group.MapGet("/{id:guid}",async (Guid id, IPaymentService paymentService, CancellationToken cancellationToken) =>
         {
-            var payment = db.Payments.FirstOrDefault(x => x.Id == id);
-            return payment == null ? Results.NotFound() : Results.Ok(payment);
+            var response  = await paymentService.GetPaymentByIdAsync(id, cancellationToken);
+            return response == null ? Results.NotFound() : Results.Ok(response);
         });
-        group.MapGet("/", (AppDbContext db, int page = 1, int pageSize = 100) =>
+        group.MapGet("/",async (IPaymentService paymentService, CancellationToken cancellationToken, int page = 1, int pageSize = 10) =>
         {
-            if (page < 1) page = 1;
-            if (pageSize > 100) pageSize = 100;
-
-            return Results.Ok(db.Payments
-                                .OrderByDescending(x => x.CreatedAt)
-                                .Skip((page - 1) * pageSize)
-                                .Take(pageSize)
-                                .ToList());
+            var responce = await paymentService.GetPaymentAsync(page, pageSize, cancellationToken);
+            return Results.Ok(responce);
         });
     }
 }

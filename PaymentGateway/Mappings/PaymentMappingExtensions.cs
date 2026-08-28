@@ -17,4 +17,15 @@ public static class PaymentMappingExtensions
 
 
     }
+
+    public static PaymentResponse ToResponse(this Payment payment)
+    {
+        return new PaymentResponse(
+            payment.Id,
+            payment.Amount,
+            payment.Currency,
+            payment.Status,
+            payment.CreatedAt
+            );
+    }
 }
