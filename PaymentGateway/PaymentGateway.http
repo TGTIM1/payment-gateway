@@ -1,37 +1,10 @@
-### 1. Создаем первый платеж (USD)
 POST http://localhost:5288/payments
 Content-Type: application/json
 
 {
-  "amount": 100.00,
-  "currency": "USD"
-}
-
-### 2. Создаем второй платеж (EUR)
-POST http://localhost:5288/payments
-Content-Type: application/json
-
-{
-  "amount": 250.50,
-  "currency": "EUR"
-}
-
-### 3. Создаем третий платеж (UZS)
-POST http://localhost:5288/payments
-Content-Type: application/json
-
-{
-  "amount": 50000.00,
-  "currency": "UZS"
-}
-
-### Не валидный пост
-POST http://localhost:5288/payments
-Content-Type: application/json
-
-{
-  "amount": -1500.00,
-  "currency": "BURMALDA"
+  "amount": 100.50,
+  "currency": "USD",
+  "idempotencyKey": "test-key-12345"
 }
 
 ### ---------------------------------------------------

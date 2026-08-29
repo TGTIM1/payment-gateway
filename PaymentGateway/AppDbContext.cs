@@ -15,5 +15,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Payment>()
             .Property(p => p.Status)
             .HasConversion<string>();
+        modelBuilder.Entity<Payment>()
+            .HasIndex(i => i.IdempotencyKey)
+            .IsUnique();
     }
 }

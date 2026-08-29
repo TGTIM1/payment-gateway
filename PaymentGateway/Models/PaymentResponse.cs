@@ -7,5 +7,6 @@ public record PaymentResponse(
     decimal Amount,
     string Currency,
     PaymentStatus Status,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    string IdempotencyKey
 );

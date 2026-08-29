@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Mappings;
+using PaymentGateway.Middleware;
 using PaymentGateway.Models;
 
 namespace PaymentGateway.Services;
@@ -8,13 +8,20 @@ namespace PaymentGateway.Services;
 public class PaymentService : IPaymentService
 {
     private readonly AppDbContext _context;
-
-    public PaymentService(AppDbContext context)
+    private readonly ILogger<PaymentService> _logger;
+    public PaymentService(AppDbContext context, ILogger<PaymentService> logger)
     {
         _context= context;
+        _logger = logger;
     }
     public async Task<PaymentResponse> CreatePaymentAsync(PaymentRequest request, CancellationToken cancellationToken = default)
     {
+        var existingPayment = await _context.Payments.FirstOrDefaultAsync(i=>i.IdempotencyKey == request.IdempotencyKey,cancellationToken);
+        if (existingPayment != null)
+        {
+            _logger.LogWarning("Payment with IdempotencyKey {IdempotencyKey} already exists. Returning cached result.", request.IdempotencyKey);
+            return existingPayment.ToResponse();
+        }
         var payment = request.ToEntity();
         _context.Payments.Add(payment);
 

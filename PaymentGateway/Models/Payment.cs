@@ -10,4 +10,6 @@ public class Payment
     public string Currency { get; init; } = "USD";
     public PaymentStatus Status { get; set; } = PaymentStatus.Created;
     public DateTime CreatedAt { get; set; }
+
+    public string IdempotencyKey { get; set; } = string.Empty; 
 }

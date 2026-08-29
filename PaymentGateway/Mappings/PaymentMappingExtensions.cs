@@ -8,11 +8,12 @@ public static class PaymentMappingExtensions
     {
         return new Payment
         {
-            Id = new Guid(),
+            Id = Guid.NewGuid(),
             Amount = request.Amount,
             Currency = request.Currency, 
             Status = PaymentStatus.Created,
             CreatedAt = DateTime.UtcNow,
+            IdempotencyKey = request.IdempotencyKey
         };
 
 
@@ -25,7 +26,8 @@ public static class PaymentMappingExtensions
             payment.Amount,
             payment.Currency,
             payment.Status,
-            payment.CreatedAt
+            payment.CreatedAt,
+            payment.IdempotencyKey
             );
     }
 }
