@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using PaymentGateway.Exceptions;
 
 namespace PaymentGateway.Middleware;
 
@@ -13,15 +14,22 @@ namespace PaymentGateway.Middleware;
 
         public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
         {
-                _logger.LogError(exception, "Произошла необработанная ошибка:{message}", exception.Message);
+            var (statusCode, errorMessage) = exception switch
+            {
+                NotFoundException => (StatusCodes.Status404NotFound, "Resource Not Found"),
+                ConflictException => (StatusCodes.Status409Conflict, "Resource Conflict"),
+                _ => (StatusCodes.Status500InternalServerError, "Server Error")
+            };
+
             var problemDetails = new ProblemDetails
             {
-                Type = "https://httpstatuses.com/500",
-                Title = "Server Error",
-                Status = 500,
-                Detail = "Произошла непредвиденная ошибка, пожалуйста повторите позже"
+                Status = statusCode,
+                Title = errorMessage,
+                Type = exception.GetType().Name,
+                Detail = exception.Message
             };
-            context.Response.StatusCode = problemDetails.Status.Value;
+            
+            context.Response.StatusCode = statusCode;
             
             await context.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 

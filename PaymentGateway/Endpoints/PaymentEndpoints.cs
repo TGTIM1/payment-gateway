@@ -26,12 +26,12 @@ public static class PaymentEndpoints
         group.MapGet("/{id:guid}",async (Guid id, IPaymentService paymentService, CancellationToken cancellationToken) =>
         {
             var response  = await paymentService.GetPaymentByIdAsync(id, cancellationToken);
-            return response == null ? Results.NotFound() : Results.Ok(response);
+            return Results.Ok(response);
         });
         group.MapGet("/",async (IPaymentService paymentService, CancellationToken cancellationToken, int page = 1, int pageSize = 10) =>
         {
-            var responce = await paymentService.GetPaymentAsync(page, pageSize, cancellationToken);
-            return Results.Ok(responce);
+            var response = await paymentService.GetPaymentAsync(page, pageSize, cancellationToken);
+            return Results.Ok(response);
         });
     }
 }

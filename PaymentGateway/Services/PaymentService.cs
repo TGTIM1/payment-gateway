@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PaymentGateway.Exceptions;
 using PaymentGateway.Mappings;
 using PaymentGateway.Middleware;
 using PaymentGateway.Models;
@@ -30,12 +31,15 @@ public class PaymentService : IPaymentService
         return payment.ToResponse();
     }
 
-    public async Task<PaymentResponse?> GetPaymentByIdAsync(Guid paymentId, CancellationToken cancellationToken = default)
+    public async Task<PaymentResponse> GetPaymentByIdAsync(Guid paymentId, CancellationToken cancellationToken = default)
     {
         var payment = await _context.Payments.FirstOrDefaultAsync(x => x.Id == paymentId, cancellationToken);
 
-        return payment == null ? null : payment.ToResponse();
-
+        if (payment == null)
+        {
+            throw new NotFoundException($"Payment with id {paymentId} was not found.");
+        }
+        return payment.ToResponse();
     }
 
     public async Task<List<PaymentResponse>> GetPaymentAsync(int pages = 1, int pageSize = 100, CancellationToken cancellationToken = default)
