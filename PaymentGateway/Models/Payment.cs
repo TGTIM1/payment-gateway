@@ -11,5 +11,7 @@ public class Payment
     public PaymentStatus Status { get; set; } = PaymentStatus.Created;
     public DateTime CreatedAt { get; set; }
 
-    public string IdempotencyKey { get; set; } = string.Empty; 
+    public string IdempotencyKey { get; set; } = string.Empty;
+
+    public List<PaymentStatusHistory> StatusHistory { get; set; } = new();
 }

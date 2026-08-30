@@ -34,5 +34,6 @@ namespace PaymentGateway.Middleware;
             await context.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
             return true;
+                
         }
     }

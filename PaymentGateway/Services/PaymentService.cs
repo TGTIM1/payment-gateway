@@ -24,6 +24,16 @@ public class PaymentService : IPaymentService
             return existingPayment.ToResponse();
         }
         var payment = request.ToEntity();
+
+        payment.StatusHistory.Add(new PaymentStatusHistory
+        {
+            PaymentId = payment.Id,
+            Status = payment.Status,
+            CreatedAt = payment.CreatedAt,
+            Reason = "Payment Created",
+        });
+        
+        
         _context.Payments.Add(payment);
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -33,7 +43,10 @@ public class PaymentService : IPaymentService
 
     public async Task<PaymentResponse> GetPaymentByIdAsync(Guid paymentId, CancellationToken cancellationToken = default)
     {
-        var payment = await _context.Payments.FirstOrDefaultAsync(x => x.Id == paymentId, cancellationToken);
+        var payment = await _context.Payments
+            .AsNoTracking()
+            .Include(x=>x.StatusHistory)
+            .FirstOrDefaultAsync(x => x.Id == paymentId, cancellationToken);
 
         if (payment == null)
         {

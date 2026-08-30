@@ -27,7 +27,11 @@ public static class PaymentMappingExtensions
             payment.Currency,
             payment.Status,
             payment.CreatedAt,
-            payment.IdempotencyKey
+            payment.IdempotencyKey,
+            payment.StatusHistory?
+                .OrderBy(h => h.CreatedAt)
+                .Select(h => new PaymentStatusHistoryDto(h.Status, h.Reason, h.CreatedAt))
+                .ToList() ?? new()
             );
     }
 }

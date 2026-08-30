@@ -8,5 +8,6 @@ public record PaymentResponse(
     string Currency,
     PaymentStatus Status,
     DateTime CreatedAt,
-    string IdempotencyKey
+    string IdempotencyKey,
+    List<PaymentStatusHistoryDto> StatusHistory
 );
