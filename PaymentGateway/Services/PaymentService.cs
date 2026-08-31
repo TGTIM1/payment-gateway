@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PaymentGateway.Exceptions;
 using PaymentGateway.Mappings;
-using PaymentGateway.Middleware;
 using PaymentGateway.Models;
+using PaymentGateway.Models.Enums;
 
 namespace PaymentGateway.Services;
 
@@ -10,32 +10,61 @@ public class PaymentService : IPaymentService
 {
     private readonly AppDbContext _context;
     private readonly ILogger<PaymentService> _logger;
-    public PaymentService(AppDbContext context, ILogger<PaymentService> logger)
+    private readonly IPaymentProvider _paymentProvider;
+
+    public PaymentService(AppDbContext context, ILogger<PaymentService> logger, IPaymentProvider paymentProvider)
     {
         _context= context;
         _logger = logger;
+        _paymentProvider = paymentProvider;
     }
     public async Task<PaymentResponse> CreatePaymentAsync(PaymentRequest request, CancellationToken cancellationToken = default)
     {
-        var existingPayment = await _context.Payments.FirstOrDefaultAsync(i=>i.IdempotencyKey == request.IdempotencyKey,cancellationToken);
+        var existingPayment = await _context.Payments.Include(x => x.StatusHistory).FirstOrDefaultAsync(i=>i.IdempotencyKey == request.IdempotencyKey,cancellationToken);
         if (existingPayment != null)
         {
             _logger.LogWarning("Payment with IdempotencyKey {IdempotencyKey} already exists. Returning cached result.", request.IdempotencyKey);
             return existingPayment.ToResponse();
         }
         var payment = request.ToEntity();
+        payment.Status = PaymentStatus.Processing;
 
         payment.StatusHistory.Add(new PaymentStatusHistory
         {
-            PaymentId = payment.Id,
-            Status = payment.Status,
-            CreatedAt = payment.CreatedAt,
-            Reason = "Payment Created",
+            Id = Guid.NewGuid(),
+            Status = PaymentStatus.Processing,
+            Reason = "Payment initiated",
+            CreatedAt = DateTime.UtcNow,
         });
         
         
-        _context.Payments.Add(payment);
+        var result = await _paymentProvider.ProcessPaymentAsync(payment.Amount, payment.Currency, cancellationToken);
 
+        if (result.IsSuccess)
+        {
+            payment.Status = PaymentStatus.Completed;
+            payment.StatusHistory.Add(new PaymentStatusHistory
+            {
+                Id = Guid.NewGuid(),
+                Status = PaymentStatus.Completed,
+                Reason = $"Processed via PSP. TxId: {result.TransactionId}",
+                CreatedAt = DateTime.UtcNow,
+            });
+        }
+        else
+        {
+            payment.Status = PaymentStatus.Failed;
+            payment.StatusHistory.Add(new PaymentStatusHistory
+            {
+                Id = Guid.NewGuid(),
+                Status = PaymentStatus.Failed,
+                Reason = result.ErrorMessage ?? "Payment failed",
+                CreatedAt = DateTime.UtcNow,
+            });
+        }
+        
+        
+        _context.Payments.Add(payment);
         await _context.SaveChangesAsync(cancellationToken);
 
         return payment.ToResponse();
@@ -62,6 +91,7 @@ public class PaymentService : IPaymentService
 
      var payments = await _context.Payments
          .AsNoTracking()
+         .Include(x => x.StatusHistory)
          .OrderByDescending(x => x.CreatedAt)
          .Skip((pages - 1) * pageSize)
          .Take(pageSize)

@@ -22,7 +22,7 @@ public class AppDbContext : DbContext
             .IsUnique();
         modelBuilder.Entity<PaymentStatusHistory>(entity =>
         {
-            entity.HasKey(x => x.PaymentId);
+            entity.HasKey(x => x.Id);
 
             entity.HasOne(x => x.Payment)
                 .WithMany(x => x.StatusHistory)

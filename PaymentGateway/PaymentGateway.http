@@ -2,9 +2,9 @@ POST http://localhost:5288/payments
 Content-Type: application/json
 
 {
-  "amount": 42.23,
+  "amount": 500,
   "currency": "USD",
-  "idempotencyKey": "Burmalda"
+  "idempotencyKey": "fail-05"
 }
 
 ### ---------------------------------------------------
