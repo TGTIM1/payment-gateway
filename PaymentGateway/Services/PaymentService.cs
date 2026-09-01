@@ -10,13 +10,12 @@ public class PaymentService : IPaymentService
 {
     private readonly AppDbContext _context;
     private readonly ILogger<PaymentService> _logger;
-    private readonly IPaymentProvider _paymentProvider;
 
-    public PaymentService(AppDbContext context, ILogger<PaymentService> logger, IPaymentProvider paymentProvider)
+    public PaymentService(AppDbContext context, ILogger<PaymentService> logger )
     {
         _context= context;
         _logger = logger;
-        _paymentProvider = paymentProvider;
+        
     }
     public async Task<PaymentResponse> CreatePaymentAsync(PaymentRequest request, CancellationToken cancellationToken = default)
     {
@@ -27,41 +26,16 @@ public class PaymentService : IPaymentService
             return existingPayment.ToResponse();
         }
         var payment = request.ToEntity();
-        payment.Status = PaymentStatus.Processing;
+        payment.Status = PaymentStatus.Pending;
 
         payment.StatusHistory.Add(new PaymentStatusHistory
         {
             Id = Guid.NewGuid(),
-            Status = PaymentStatus.Processing,
-            Reason = "Payment initiated",
+            Status = PaymentStatus.Pending,
+            Reason = "Payment created and queued for processing",
             CreatedAt = DateTime.UtcNow,
         });
         
-        
-        var result = await _paymentProvider.ProcessPaymentAsync(payment.Amount, payment.Currency, cancellationToken);
-
-        if (result.IsSuccess)
-        {
-            payment.Status = PaymentStatus.Completed;
-            payment.StatusHistory.Add(new PaymentStatusHistory
-            {
-                Id = Guid.NewGuid(),
-                Status = PaymentStatus.Completed,
-                Reason = $"Processed via PSP. TxId: {result.TransactionId}",
-                CreatedAt = DateTime.UtcNow,
-            });
-        }
-        else
-        {
-            payment.Status = PaymentStatus.Failed;
-            payment.StatusHistory.Add(new PaymentStatusHistory
-            {
-                Id = Guid.NewGuid(),
-                Status = PaymentStatus.Failed,
-                Reason = result.ErrorMessage ?? "Payment failed",
-                CreatedAt = DateTime.UtcNow,
-            });
-        }
         
         
         _context.Payments.Add(payment);
