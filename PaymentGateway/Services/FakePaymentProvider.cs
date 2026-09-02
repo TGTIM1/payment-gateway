@@ -11,7 +11,7 @@ public class FakePaymentProvider : IPaymentProvider
 
         int roll = Random.Shared.Next(1, 101);
 
-        if (roll <= 80)
+        if (roll <= 30)
         {
             return new PaymentProviderResult
             (

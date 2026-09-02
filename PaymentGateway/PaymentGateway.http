@@ -4,11 +4,11 @@ Content-Type: application/json
 {
   "amount": 500,
   "currency": "USD",
-  "idempotencyKey": "3"
+  "idempotencyKey": "9"
 }
 
 ### ---------------------------------------------------
-GET http://localhost:5288/payments/3b1a8908-3126-40ed-92c2-70c736ec4f32
+GET http://localhost:5288/payments/e90ab5ea-baa0-4dda-9495-0a4a8ab4a21c
 ### ТЕСТЫ ПАГИНАЦИИИ И СОРТИРОВКИ
 ### ---------------------------------------------------
 GET http://localhost:5288/payments/891d65f6-634b-4824-88ea-da32d65c37f7

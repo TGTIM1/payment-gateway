@@ -35,7 +35,7 @@ public class PaymentProcessingWorker : BackgroundService
 
     private async Task ProcessPendingPaymentsAsync(CancellationToken stoppingToken)
 {
-    // 1. Получаем список ID платежей, требующих обработки
+
     List<Guid> pendingIds;
     using (var scope = _serviceProvider.CreateScope())
     {
@@ -52,7 +52,7 @@ public class PaymentProcessingWorker : BackgroundService
 
     _logger.LogInformation("Found {Count} pending payments for processing", pendingIds.Count);
 
-    // 2. обрабатываем каждый платеж в изолированном DbContext
+
     foreach (var paymentId in pendingIds)
     {
         using var scope = _serviceProvider.CreateScope();
@@ -62,22 +62,22 @@ public class PaymentProcessingWorker : BackgroundService
         var payment = await dbContext.Payments.FirstOrDefaultAsync(p => p.Id == paymentId, stoppingToken);
         if (payment == null || payment.Status != PaymentStatus.Pending) continue;
 
-        // Переводим в Processing
+
         payment.Status = PaymentStatus.Processing;
         dbContext.StatusHistory.Add(new PaymentStatusHistory
         {
             Id = Guid.NewGuid(),
             PaymentId = payment.Id,
             Status = PaymentStatus.Processing,
-            Reason = "Processing started by background worker",
+            Reason = $"Processing started by background worker (Attempt {payment.RetryCount + 1})",
             CreatedAt = DateTime.UtcNow
         });
         await dbContext.SaveChangesAsync(stoppingToken);
 
-        // Вызов внешней платежки
+
         var result = await paymentProvider.ProcessPaymentAsync(payment.Amount, payment.Currency, stoppingToken);
 
-        // Финальный статус
+ 
         if (result.IsSuccess)
         {
             payment.Status = PaymentStatus.Completed;
@@ -93,16 +93,36 @@ public class PaymentProcessingWorker : BackgroundService
         }
         else
         {
-            payment.Status = PaymentStatus.Failed;
-            dbContext.StatusHistory.Add(new PaymentStatusHistory
+            payment.RetryCount++;
+
+            if (payment.RetryCount < 10)
             {
-                Id = Guid.NewGuid(),
-                PaymentId = payment.Id,
-                Status = PaymentStatus.Failed,
-                Reason = result.ErrorMessage ?? "Payment failed",
-                CreatedAt = DateTime.UtcNow
-            });
-            _logger.LogWarning("Payment {PaymentId} failed", payment.Id);
+                payment.Status = PaymentStatus.Pending;
+                dbContext.StatusHistory.Add(new PaymentStatusHistory
+                {
+                    Id = Guid.NewGuid(),
+                    PaymentId = payment.Id,
+                    Status = PaymentStatus.Pending,
+                    Reason = $"PSP failed: {result.ErrorMessage}. Retrying ({payment.RetryCount}/3)...",
+                    CreatedAt = DateTime.UtcNow
+                });
+                _logger.LogWarning("Payment {PaymentId} failed. Retry {RetryCount}/3 scheduled", payment.Id, payment.RetryCount);
+            }
+            else
+            {
+                payment.Status = PaymentStatus.Failed;
+                dbContext.StatusHistory.Add(new PaymentStatusHistory
+                {
+                    Id = Guid.NewGuid(),
+                    PaymentId = payment.Id,
+                    Status = PaymentStatus.Failed,
+                    Reason = $"Payment failed after {payment.RetryCount} retries. Error: {result.ErrorMessage}",
+                    CreatedAt = DateTime.UtcNow
+                });
+                _logger.LogWarning("Payment {PaymentId} permanently failed after {RetryCount} retries", payment.Id, payment.RetryCount);
+            }
+
+            
         }
 
         await dbContext.SaveChangesAsync(stoppingToken);

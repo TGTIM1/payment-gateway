@@ -13,5 +13,7 @@ public class Payment
 
     public string IdempotencyKey { get; set; } = string.Empty;
 
+    public int RetryCount { get; set; } = 0;
+
     public List<PaymentStatusHistory> StatusHistory { get; set; } = new();
 }
