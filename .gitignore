@@ -1,0 +1,6 @@
+PaymentGateway/appsettings.Development.json
+
+**/bin/
+**/obj/
+.idea/
+.vs/git status
