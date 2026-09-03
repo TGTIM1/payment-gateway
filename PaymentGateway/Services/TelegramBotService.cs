@@ -2,6 +2,7 @@
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace PaymentGateway.Services;
 
@@ -41,16 +42,68 @@ public class TelegramBotService : BackgroundService
     {
         if (update.Message is { Text: { } messageText } message)
         {
-            _logger.LogInformation("Received message '{Text}' in chat {ChatId}", messageText, message.Chat.Id);
 
-            await botClient.SendMessage(
-                chatId: message.Chat.Id,
-                text: $"Привет! Ты написал: {messageText}",
-                cancellationToken: cancellationToken
-            );
+            await HandleMessageAsync(botClient, message, cancellationToken);
         }
     }
 
+    private async Task HandleMessageAsync(ITelegramBotClient botClient, Message message,
+        CancellationToken cancellationToken)
+    {
+        string responseText = message.Text;
+        switch (responseText)
+        {
+            case "/start":
+                var menuKeyboard = new ReplyKeyboardMarkup(new[]
+                {
+                   new KeyboardButton[] {"Создать платеж"},
+                   new KeyboardButton[] { "История платежей"},
+                   new KeyboardButton[] {"Помощь"}
+                })
+                {
+                    ResizeKeyboard = true
+                };
+                await botClient.SendMessage(
+                    chatId: message.Chat.Id,
+                    text: "Добро пожаловать! Выбери нужный пункт ниже", 
+                    replyMarkup:  menuKeyboard,
+                    cancellationToken: cancellationToken);
+                break;
+            case "Создать платеж":
+                var inlineKeyboard = new InlineKeyboardMarkup(new[]
+                {
+                    InlineKeyboardButton.WithWebApp(
+                        text: "Открыть платежник",
+                        webApp: new WebAppInfo{ Url = "https://google.com" })
+                });
+                await botClient.SendMessage(
+                    chatId: message.Chat.Id,
+                    text: "Нажмите кнопку ниже чтобы создать платеж",
+                    replyMarkup: inlineKeyboard,
+                    cancellationToken: cancellationToken
+                );
+                break;
+            case "История платежей":
+                await botClient.SendMessage(
+                    chatId: message.Chat.Id,
+                    text: "В разработке",
+                    cancellationToken: cancellationToken);
+                break;
+            case "Помощь":
+                await botClient.SendMessage(
+                    chatId: message.Chat.Id,
+                    text: "Этот бот предназначен для создания платежей",
+                    cancellationToken: cancellationToken);
+                break;
+            
+            default: 
+                await botClient.SendMessage(
+                    chatId: message.Chat.Id,
+                    text: "Неизвестная команда, пожалуйста используйте меню",
+                    cancellationToken: cancellationToken);
+            break;
+        }
+    }
     private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
         _logger.LogError(exception, "Error occurred in Telegram Bot");
