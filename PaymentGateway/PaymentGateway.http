@@ -1,4 +1,7 @@
-POST http://localhost:5288/payments
+@HostAddress = http://localhost:5288
+
+### 1. Создание платежа
+POST {{HostAddress}}/payments
 Content-Type: application/json
 
 {
@@ -7,16 +10,27 @@ Content-Type: application/json
   "idempotencyKey": "9"
 }
 
+### 2. Проверка валидации Telegram initData (Должен вернуть 401 Unauthorized)
+POST {{HostAddress}}/api/auth/telegram
+Content-Type: application/json
+
+{
+  "initData": "query_id=AAFeHsM2AAAAAF4ewza6mJQ-&user={\"id\":918756958,\"first_name\":\"Тим\",\"last_name\":\"\",\"username\":\"TGTIM\",\"language_code\":\"ru\",\"allows_write_to_pm\":true,\"photo_url\":\"https:\\/\\/t.me\\/i\\/userpic\\/320\\/DL34v1GN0PAZpk3s3GMEqEkiJLunRlB-6yCcl6NJKjk.svg\"}&auth_date=1788545522&signature=uf1kyx_8M2m0WcLKKBauwTriyZKLfaY78uayLuSvmGt7nXakWy4e5hoE5HpJhLEhNRqUgG_rCtigUYLw7slMAA&hash=4c1d0a29790a94a050eba803487017a7124b7c3f6da7d4a9df1fbb7f9fc08671"
+}
+
 ### ---------------------------------------------------
-GET http://localhost:5288/payments/e90ab5ea-baa0-4dda-9495-0a4a8ab4a21c
-### ТЕСТЫ ПАГИНАЦИИИ И СОРТИРОВКИ
+### 3. Получение платежа по ID
+GET {{HostAddress}}/payments/e90ab5ea-baa0-4dda-9495-0a4a8ab4a21c
+
 ### ---------------------------------------------------
-GET http://localhost:5288/payments/891d65f6-634b-4824-88ea-da32d65c37f7
+### ТЕСТЫ ПАГИНАЦИИ И СОРТИРОВКИ
+### ---------------------------------------------------
+
 ### A. Дефолтный запрос (все элементы)
-GET http://localhost:5288/payments
+GET {{HostAddress}}/payments
 
 ### B. Страница 1, по 2 элемента 
-GET http://localhost:5288/payments?page=1&pageSize=2
+GET {{HostAddress}}/payments?page=1&pageSize=2
 
 ### C. Страница 2, по 2 элемента
-GET http://localhost:5288/payments?page=2&pageSize=2
+GET {{HostAddress}}/payments?page=2&pageSize=2

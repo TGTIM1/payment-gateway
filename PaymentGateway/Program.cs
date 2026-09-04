@@ -15,6 +15,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IPaymentProvider, FakePaymentProvider>();
+builder.Services.AddScoped<ITelegramAuthService, TelegramAuthService>();
 builder.Services.AddHostedService<PaymentProcessingWorker>();
 builder.Services.AddCors(options =>
 {
@@ -50,5 +51,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseExceptionHandler();
 app.MapPaymentEndpoints();
+app.MapAuthEndpoints();
 
 app.Run();

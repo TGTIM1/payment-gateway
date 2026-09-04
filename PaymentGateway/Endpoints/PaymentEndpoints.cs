@@ -18,8 +18,6 @@ public static class PaymentEndpoints
                 return Results.ValidationProblem(validationResult.ToDictionary());
             }
             var response = await paymentService.CreatePaymentAsync(request, cancellationToken);
-            
-            //throw new Exception("Ихихи - Хяхя");
             return Results.Created($"/payments/{response.Id}", response);
             
         });
