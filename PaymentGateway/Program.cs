@@ -28,6 +28,7 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddHostedService<TelegramBotService>();
+
 // Настройка сериализации Enum в строку для всех типов ответов (и Http.Json, и Mvc.Json)
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
@@ -42,13 +43,22 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 var app = builder.Build();
+
+// Автоматическое применение миграций при старте приложения
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
 app.UseCors("AllowFrontend");
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseExceptionHandler();
 app.MapPaymentEndpoints();
 app.MapAuthEndpoints();

@@ -1,36 +1,44 @@
-@HostAddress = http://localhost:5288
+@HostAddress = http://localhost:8080
 
-### 1. Создание платежа
-POST {{HostAddress}}/payments
+### 1. Создание платежа для Пользователя 100
+POST {{HostAddress}}/api/payments
 Content-Type: application/json
 
 {
   "amount": 500,
   "currency": "USD",
-  "idempotencyKey": "9"
+  "idempotencyKey": "test-key-100",
+  "telegramUserId": 100
 }
 
-### 2. Проверка валидации Telegram initData (Должен вернуть 401 Unauthorized)
-POST {{HostAddress}}/api/auth/telegram
+###
+
+### 2. Создание платежа для Пользователя 200 (для проверки изоляции)
+POST {{HostAddress}}/api/payments
 Content-Type: application/json
 
 {
-  "initData": "query_id=AAFeHsM2AAAAAF4ewza6mJQ-&user={\"id\":918756958,\"first_name\":\"Тим\",\"last_name\":\"\",\"username\":\"TGTIM\",\"language_code\":\"ru\",\"allows_write_to_pm\":true,\"photo_url\":\"https:\\/\\/t.me\\/i\\/userpic\\/320\\/DL34v1GN0PAZpk3s3GMEqEkiJLunRlB-6yCcl6NJKjk.svg\"}&auth_date=1788545522&signature=uf1kyx_8M2m0WcLKKBauwTriyZKLfaY78uayLuSvmGt7nXakWy4e5hoE5HpJhLEhNRqUgG_rCtigUYLw7slMAA&hash=4c1d0a29790a94a050eba803487017a7124b7c3f6da7d4a9df1fbb7f9fc08671"
+  "amount": 250,
+  "currency": "USD",
+  "idempotencyKey": "test-key-200",
+  "telegramUserId": 200
 }
 
-### ---------------------------------------------------
-### 3. Получение платежа по ID
-GET {{HostAddress}}/payments/e90ab5ea-baa0-4dda-9495-0a4a8ab4a21c
+###
 
-### ---------------------------------------------------
-### ТЕСТЫ ПАГИНАЦИИ И СОРТИРОВКИ
-### ---------------------------------------------------
+### 3. Список платежей Пользователя 100 (Пагинация: стр. 1, размер 10)
+GET {{HostAddress}}/api/payments?telegramUserId=100&page=1&pageSize=10
 
-### A. Дефолтный запрос (все элементы)
-GET {{HostAddress}}/payments
+###
 
-### B. Страница 1, по 2 элемента 
-GET {{HostAddress}}/payments?page=1&pageSize=2
+### 4. Список платежей Пользователя 200 (Изоляция)
+GET {{HostAddress}}/api/payments?telegramUserId=200&page=1&pageSize=10
 
-### C. Страница 2, по 2 элемента
-GET {{HostAddress}}/payments?page=2&pageSize=2
+###
+
+### 5. Получение платежа по ID (подставь сохраненный GUID)
+GET {{HostAddress}}/api/payments/e90ab5ea-baa0-4dda-9495-0a4a8ab4a21c
+
+###
+
+

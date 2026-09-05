@@ -8,7 +8,7 @@ public static class PaymentEndpoints
 {
     public static void MapPaymentEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/payments");
+        var group = app.MapGroup("/api/payments");
 
         group.MapPost("/", async (PaymentRequest request, IPaymentService paymentService, IValidator<PaymentRequest> validator, CancellationToken cancellationToken) =>
         {
@@ -19,16 +19,17 @@ public static class PaymentEndpoints
             }
             var response = await paymentService.CreatePaymentAsync(request, cancellationToken);
             return Results.Created($"/payments/{response.Id}", response);
-            
         });
-        group.MapGet("/{id:guid}",async (Guid id, IPaymentService paymentService, CancellationToken cancellationToken) =>
+
+        group.MapGet("/{id:guid}", async (Guid id, IPaymentService paymentService, CancellationToken cancellationToken) =>
         {
-            var response  = await paymentService.GetPaymentByIdAsync(id, cancellationToken);
+            var response = await paymentService.GetPaymentByIdAsync(id, cancellationToken);
             return Results.Ok(response);
         });
-        group.MapGet("/",async (IPaymentService paymentService, CancellationToken cancellationToken, int page = 1, int pageSize = 10) =>
+        
+        group.MapGet("/", async (long telegramUserId, IPaymentService paymentService, CancellationToken cancellationToken, int page = 1, int pageSize = 10) =>
         {
-            var response = await paymentService.GetPaymentAsync(page, pageSize, cancellationToken);
+            var response = await paymentService.GetPaymentAsync(telegramUserId, page, pageSize, cancellationToken);
             return Results.Ok(response);
         });
     }

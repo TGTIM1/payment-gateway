@@ -9,5 +9,6 @@ public record PaymentResponse(
     PaymentStatus Status,
     DateTime CreatedAt,
     string IdempotencyKey,
+    long TelegramUserId,
     List<PaymentStatusHistoryDto> StatusHistory
 );

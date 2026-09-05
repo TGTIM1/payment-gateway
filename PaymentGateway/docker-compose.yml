@@ -1,0 +1,37 @@
+﻿services:
+  payment-db:
+    image: postgres:16-alpine
+    container_name: payment-db
+    environment:
+      POSTGRES_DB: paymentgateway
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespassword}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  payment-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: payment-api
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Default=Host=payment-db;Port=5432;Database=paymentgateway;Username=postgres;Password=${POSTGRES_PASSWORD:-postgrespassword}
+      - TelegramBot__Token=${TELEGRAM_BOT_TOKEN}
+      - TelegramBotToken=${TELEGRAM_BOT_TOKEN}
+      - TelegramToken=${TELEGRAM_BOT_TOKEN}
+    depends_on:
+      payment-db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

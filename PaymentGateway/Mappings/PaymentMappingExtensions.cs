@@ -1,5 +1,6 @@
 ﻿using PaymentGateway.Models;
 using PaymentGateway.Models.Enums;
+
 namespace PaymentGateway.Mappings;
 
 public static class PaymentMappingExtensions
@@ -10,13 +11,12 @@ public static class PaymentMappingExtensions
         {
             Id = Guid.NewGuid(),
             Amount = request.Amount,
-            Currency = request.Currency, 
+            Currency = request.Currency,
             Status = PaymentStatus.Created,
             CreatedAt = DateTime.UtcNow,
-            IdempotencyKey = request.IdempotencyKey
+            IdempotencyKey = request.IdempotencyKey,
+            TelegramUserId = request.TelegramUserId 
         };
-
-
     }
 
     public static PaymentResponse ToResponse(this Payment payment)
@@ -28,10 +28,11 @@ public static class PaymentMappingExtensions
             payment.Status,
             payment.CreatedAt,
             payment.IdempotencyKey,
+            payment.TelegramUserId,
             payment.StatusHistory?
                 .OrderBy(h => h.CreatedAt)
                 .Select(h => new PaymentStatusHistoryDto(h.Status, h.Reason, h.CreatedAt))
                 .ToList() ?? new()
-            );
+        );
     }
 }

@@ -11,9 +11,10 @@ public class Payment
     public PaymentStatus Status { get; set; } = PaymentStatus.Created;
     public DateTime CreatedAt { get; set; }
 
+    public long TelegramUserId { get; set; }
     public string IdempotencyKey { get; set; } = string.Empty;
-
+  
     public int RetryCount { get; set; } = 0;
-
+    
     public List<PaymentStatusHistory> StatusHistory { get; set; } = new();
 }
