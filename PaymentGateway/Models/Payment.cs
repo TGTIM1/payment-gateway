@@ -8,9 +8,9 @@ public class Payment
     public Guid Id { get; set; }
     public decimal Amount { get; set; }
     public string Currency { get; init; } = "USD";
+    public string? Description { get; set; }
     public PaymentStatus Status { get; set; } = PaymentStatus.Created;
     public DateTime CreatedAt { get; set; }
-
     public long TelegramUserId { get; set; }
     public string IdempotencyKey { get; set; } = string.Empty;
   

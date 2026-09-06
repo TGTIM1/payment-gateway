@@ -9,7 +9,6 @@
 
     const initData = tg?.initData || "";
 
-    // 1. Отображаем имя пользователя
     const userNameElement = document.getElementById("user-name");
     if (tg?.initDataUnsafe?.user) {
         const user = tg.initDataUnsafe.user;
@@ -18,7 +17,6 @@
         userNameElement.textContent = "Локальный режим (без Telegram)";
     }
 
-    // Вспомогательный метод для выполнения авторизованных запросов
     async function apiFetch(url, options = {}) {
         options.headers = {
             ...options.headers,
@@ -28,11 +26,14 @@
         return await fetch(url, options);
     }
 
-    // 2. Функция загрузки списка платежей
+    let pollingTimer = null;
+
     async function loadPayments() {
         const listContainer = document.getElementById("payments-list");
         try {
-            const response = await apiFetch("/api/payments?page=1&pageSize=10");
+            const userId = tg?.initDataUnsafe?.user?.id || 100;
+
+            const response = await apiFetch(`/api/payments?telegramUserId=${userId}&page=1&pageSize=10`);
 
             if (!response.ok) {
                 listContainer.innerHTML = `<p class="empty-text">Ошибка загрузки истории (${response.status})</p>`;
@@ -40,34 +41,68 @@
             }
 
             const data = await response.json();
-            const payments = data.items || data; // поддерживает и пагинированный ответ, и обычный массив
+            const payments = data.items || data;
 
             if (!payments || payments.length === 0) {
                 listContainer.innerHTML = `<p class="empty-text">Платежей пока нет</p>`;
                 return;
             }
 
-            listContainer.innerHTML = payments.map(p => `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
-                    <div>
-                        <div style="font-weight:600;">${p.amount} ${p.currency}</div>
-                        <div style="font-size:0.8rem; color:var(--hint-color);">${p.description || 'Без описания'}</div>
+            listContainer.innerHTML = payments.map(p => {
+                let statusColor = 'var(--hint-color, #888)';
+                let statusBg = 'rgba(0, 0, 0, 0.05)';
+                let borderColor = 'rgba(0, 0, 0, 0.05)';
+
+                const statusStr = String(p.status).toLowerCase();
+
+                if (statusStr === 'completed' || statusStr === 'succeeded' || statusStr === '2') {
+                    statusColor = '#2e7d32';
+                    statusBg = '#e8f5e9';
+                    borderColor = '#4caf50';
+                } else if (statusStr === 'pending' || statusStr === 'processing' || statusStr === '0' || statusStr === '1') {
+                    statusColor = '#ed6c02';
+                    statusBg = '#fff3e0';
+                    borderColor = '#ff9800';
+                } else if (statusStr === 'failed' || statusStr === 'cancelled' || statusStr === '3') {
+                    statusColor = '#d32f2f';
+                    statusBg = '#ffebee';
+                    borderColor = '#f44336';
+                }
+
+                return `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 12px; margin-bottom: 8px; border: 1.5px solid ${borderColor}; border-radius: 8px; transition: all 0.3s ease;">
+                        <div>
+                            <div style="font-weight:600;">${p.amount} ${p.currency}</div>
+                            <div style="font-size:0.8rem; color:var(--hint-color);">${p.description || 'Без описания'}</div>
+                        </div>
+                        <div style="font-size:0.85rem; font-weight:600; padding: 4px 10px; border-radius: 6px; color: ${statusColor}; background: ${statusBg};">
+                            ${p.status}
+                        </div>
                     </div>
-                    <div style="font-size:0.85rem; padding: 4px 8px; border-radius: 6px; background: rgba(0,0,0,0.05);">
-                        ${p.status}
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
+
+            const hasPending = payments.some(p => {
+                const statusStr = String(p.status).toLowerCase();
+                return statusStr === 'pending' || statusStr === 'processing' || statusStr === '0' || statusStr === '1';
+            });
+
+            if (hasPending && !pollingTimer) {
+                pollingTimer = setInterval(loadPayments, 3000);
+            }
+            else if (!hasPending && pollingTimer) {
+                clearInterval(pollingTimer);
+                pollingTimer = null;
+            }
+
         } catch (err) {
             console.error("Ошибка загрузки платежей:", err);
             listContainer.innerHTML = `<p class="empty-text">Ошибка сети при загрузке</p>`;
         }
     }
 
-    // Первичная загрузка истории
     await loadPayments();
 
-    // 3. Обработка отправки формы создания платежа
     const form = document.getElementById("payment-form");
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -77,6 +112,7 @@
         const amount = parseFloat(document.getElementById("amount").value);
         const currency = document.getElementById("currency").value;
         const description = document.getElementById("description").value;
+        const userId = tg?.initDataUnsafe?.user?.id || 100;
 
         const payBtn = document.getElementById("pay-btn");
         payBtn.disabled = true;
@@ -89,7 +125,8 @@
                     amount: amount,
                     currency: currency,
                     description: description,
-                    idempotencyKey: crypto.randomUUID()
+                    idempotencyKey: crypto.randomUUID(),
+                    telegramUserId: userId
                 })
             });
 
@@ -99,7 +136,7 @@
                     form.reset();
                     payBtn.disabled = false;
                     payBtn.textContent = "Оплатить";
-                    loadPayments(); // Перерисовываем историю
+                    loadPayments();
                 });
             } else {
                 const errorData = await response.json().catch(() => null);

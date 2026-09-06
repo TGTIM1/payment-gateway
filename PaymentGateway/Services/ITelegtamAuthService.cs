@@ -6,4 +6,5 @@ public interface ITelegramAuthService
 {
     bool ValidateInitData(string initData);
     TelegramUserDto? ParseUserData(string initData);
+    long? ExtractUserId(string? initData);
 }

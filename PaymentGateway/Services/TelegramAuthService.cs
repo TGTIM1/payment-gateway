@@ -79,4 +79,11 @@ public class TelegramAuthService : ITelegramAuthService
             return null;
         }
     }
+    public long? ExtractUserId(string? initData)
+    {
+        if (string.IsNullOrWhiteSpace(initData)) return null;
+        if (!ValidateInitData(initData)) return null;
+        var userDto = ParseUserData(initData);
+        return userDto?.Id;
+    }
 }
