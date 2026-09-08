@@ -103,7 +103,7 @@ public class PaymentProcessingWorker : BackgroundService
                     Id = Guid.NewGuid(),
                     PaymentId = payment.Id,
                     Status = PaymentStatus.Pending,
-                    Reason = $"PSP failed: {result.ErrorMessage}. Retrying ({payment.RetryCount}/3)...",
+                    Reason = $"PSP failed: {result.ErrorMessage}. Retrying ({payment.RetryCount}/10)...",
                     CreatedAt = DateTime.UtcNow
                 });
                 _logger.LogWarning("Payment {PaymentId} failed. Retry {RetryCount}/3 scheduled", payment.Id, payment.RetryCount);

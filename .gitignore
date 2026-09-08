@@ -1,6 +1,20 @@
-PaymentGateway/appsettings.Development.json
+# Секреты и локальные переменные среды
+.env
+.env.local
+*.user
 
+# Конфигурации для разработки (содержат локальные ключи)
+PaymentGateway/appsettings.Development.json
+PaymentGateway/appsettings.json
+
+# Служебные папки сборки .NET
 **/bin/
 **/obj/
+
+# IDE и редакторы (JetBrains Rider, Visual Studio, VS Code)
 .idea/
-.vs/git status
+.vs/
+.vscode/
+
+# HTTP Client журналы и приватные параметры
+*.http.user
